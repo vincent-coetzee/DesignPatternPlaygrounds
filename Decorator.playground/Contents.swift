@@ -12,7 +12,6 @@
 
 import UIKit
 
-
 class BorderedTextField:UITextField
 	{
     override init(frame:CGRect)
@@ -31,6 +30,11 @@ class BorderedTextField:UITextField
 let field = BorderedTextField(frame: CGRect(x:0,y:0,width:100,height:30))
 field.text = "hello"
 
+//: First, we create the decorator. In this case it's a view ( called in this instance, BorderedView), that will "decorate" another view
+//: with a border. We define a method on the decorator, called wrap, that wraps another view. Another
+//: name for the Decorator pattern is the Wrapper pattern, since this is what a decorator does, it
+//: wraps one object in another, and adds behavior ( or state ) to the wrapped object.
+//:
 class BorderedView:UIView
 	{
     override init(frame:CGRect)
@@ -52,10 +56,19 @@ class BorderedView:UIView
         }
     }
 
+//: Now we can take any other view, in this case a UITextField, and we can wrap it in
+//: the BorderedView.
+
 let wrappedField = UITextField(frame: CGRect(x:0,y:0,width:100,height:30))
 wrappedField.text = "hello"
 let borderedView = BorderedView(frame: CGRect(x:0,y:0,width:100,height:30))
 borderedView.wrap(view:wrappedField)
+
+//: And voila we now have a border around the UITextView. The beauty of this approach is that with
+//: no effort or extra coding, we can re-use the Wrapper - the BorderedView to wrap ANY other view.
+//: So here we create an ordinary red view, and then wrap it in the BorderView. 
+//: This is a very simple example of Decorator and similar to the example in the GoF book. In the next playground, called Payments we use a more complicated and somewhat more useful example of how to use
+//: a wrapper to compose behavior.
 
 let wrappedView = UIView(frame: CGRect(x:0,y:0,width:100,height:100))
 wrappedView.backgroundColor = UIColor.red
