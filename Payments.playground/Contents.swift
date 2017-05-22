@@ -2,13 +2,22 @@
 
 import UIKit
 
+//: The DatePolicy enum defines how the MonthlyPaymentStream should adjust dates
+//: when it adds the payments to the monthly bucket. This is the Policy object in
+//: the Strategy pattern.
+
 enum DatePolicy
 	{
     case end
     case start
     }
 
+//: This is a quick hack for calcuating days in a month. Don't do this
+
 var DaysInMonth:[Int] = [31,28,31,30,31,30,31,31,30,31,30,31]
+
+//: Some crude extensions to date to assist in some date calculations. 
+//: These are purely a quick hack, and should not be used generally.
 
 extension Date
 	{
@@ -45,11 +54,20 @@ extension Date
         }
     }
 
-let dateFormatter = DateFormatter()
-dateFormatter.dateFormat = "yyyy/MMM/dd HH:mm:SS ZZZ"
+//: A Payment is a sinple struct for holding some information about payments. It can
+//: also do some simple operations such as adding payments. Purely for demonstration purposes.
 
 struct Payment
 	{
+    private static let Formatter = initDateFormatter()
+    
+    private static func initDateFormatter() -> DateFormatter
+    	{
+        let dateFormatter = DateFormatter()
+		dateFormatter.dateFormat = "yyyy/MMM/dd HH:mm:SS ZZZ"
+        return(dateFormatter)
+        }
+    
     let date:Date
     let amount:Int
     
@@ -74,16 +92,24 @@ struct Payment
     
     func print()
     	{
-        let dateString = dateFormatter.string(from:date)
+        let dateString = Payment.Formatter.string(from:date)
         Swift.print("\(dateString) \(amount)")
         }
     }
 
+//: A definition of an abstract PaymentStream, this is similar to an interface in Java. It defines
+//: two operations one for retrieving the next available payment from a stream, and one for resetting
+//: the current offset of a stream.
+
 protocol PaymentStream
 	{
     func nextPayment() -> Payment?
-    func reset()
+    func resetOffset()
     }
+
+//: A PaymentArray defines a very simple collection of payments that can be added to 
+//: and that one can access by asking for the next payment. A PaymentArray implements
+//: the PaymentStream protocol, this means it can be used anywhere a PaymentStream is expected.
 
 class PaymentArray:PaymentStream
 	{
@@ -106,14 +132,14 @@ class PaymentArray:PaymentStream
         return(nil)
         }
     
-    func reset()
+    func resetOffset()
     	{
         offset = 0
         }
     
     func print()
     	{
-        reset()
+        resetOffset()
         var payment = nextPayment()
         while payment != nil
         	{
@@ -122,6 +148,8 @@ class PaymentArray:PaymentStream
             }
         }
     }
+
+//: Create a payment array and add some payments to it.
 
 let stream = PaymentArray()
 var date = Date()
@@ -132,7 +160,19 @@ date = date.withDaysAdded(23)
 stream.addPayment(date:date,amount:50)
 date = date.withDaysAdded(12)
 stream.addPayment(date:date,amount:10)
+
+//: Ask the payment array to print itself so we can see it's contents.
+
 stream.print()
+
+//: Now we define a MonthlyPaymentStream, which will wrap ( or decorate ) any PaymentStream. The MonthlyPaymentStream
+//: assumes that the payments that come out of the PaymentStream are ordered according to date. It merges multiple payments
+//: for a month into a single payment in the payment stream. The DatePolicy defines whether the date for the monthly payment
+//: is adjusted to the start of the month or the end of the month. In essence the MonthlyPaymentStream can wrap any PaymentStream
+//: and bucket multiple payments in a month into a single monthly payment, this demonstrates the use of the Decorator ( or Wrapper )
+//: design pattern. The DatePolicy used in conjunction with the MonthlyPaymentStream demonstates the use of the Strategy pattern. In essence
+//: the DatePolicy causes the algorithm used to adjust the monthly date to vary independently of the implementation. We can get different behavior from the
+//: MonthlyPaymentStream merely by changing the DatePolicy.
 
 class MonthlyPaymentStream:PaymentStream
 	{
@@ -181,14 +221,14 @@ class MonthlyPaymentStream:PaymentStream
         return(total)
         }
     
-    func reset()
+    func resetOffset()
     	{
-        source.reset()
+        source.resetOffset()
         }
     
     func print()
     	{
-        reset()
+        resetOffset()
         var payment = nextPayment()
         while payment != nil
         	{
@@ -199,9 +239,21 @@ class MonthlyPaymentStream:PaymentStream
     }
 
 print("------------------------")
+
+//: So now we wrap the payment array ( named stream ) with a MonthlyPaymentStream. This works because
+//: PaymentArray implements the PaymentStream protocol ( we can wrap any object as long as it adheres to 
+//: the PaymentStream protocol ). Now we can ask the MonthlyPaymentStream to print itself out, it uses it's
+//: own nextPayment method to iterate over it's content. In so doing we now receive a stream on monthly payments
+//: rather than the payments that we added to the PaymentArray. Notice that the dates displayed are adjusted to 
+//: the 1st of the month that contains the payment. This is controlled by the DatePolicy value. Changing the datePolicy
+//: of the MonthlyPaymentStream changes the way the dates are adjusted ( Strategy or Policy pattern ).
+
 let monthlyPaymentStream = MonthlyPaymentStream(on: stream)
 monthlyPaymentStream.print()
 print("------------------------")
+
+//: Here's where we change the policy, and note the different output from the MonthPaymentStream.print method.
+
 monthlyPaymentStream.datePolicy = .end
 monthlyPaymentStream.print()
 
