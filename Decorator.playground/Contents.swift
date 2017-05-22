@@ -1,6 +1,17 @@
-//: Playground - noun: a place where people can play
+//: #### Decorator Pattern
+//:
+//: Lets say we have a need to display a border around a TextField ( obviously we could do this
+//: by turning on the border of the UITextField, but ignore that for the sake of demonstration ). So in
+//: this first class, BorderedTextField, we create a subclass of UITextField and we create a border
+//: setting the attributes of the subclass. This has the limitation that for every view we want to 
+//: put a border around we have to either tweak it in code or create a subclass of the particular view
+//: type and turn it's border on. What we want to be able to do is to border any UIView or subclass
+//: by means of composition.
+//:
+//: The [Decorator Pattern](https://en.wikipedia.org/wiki/Decorator_pattern) allows us to do this.
 
 import UIKit
+
 
 class BorderedTextField:UITextField
 	{
