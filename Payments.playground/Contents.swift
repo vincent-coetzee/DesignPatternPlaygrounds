@@ -54,7 +54,7 @@ extension Date
         }
     }
 
-//: A Payment is a sinple struct for holding some information about payments. It can
+//: A Payment is a simple struct for holding some information about payments. It can
 //: also do some simple operations such as adding payments. Purely for demonstration purposes.
 
 struct Payment
